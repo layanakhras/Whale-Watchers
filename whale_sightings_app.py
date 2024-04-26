@@ -2,6 +2,7 @@ import mysql.connector
 import pandas as pd
 
 
+# Function to connect to the MySQL database
 def connect_to_database():
    try:
        connection = mysql.connector.connect(
@@ -17,6 +18,7 @@ def connect_to_database():
        return None
 
 
+# Function to execute SQL queries
 def execute_query(connection, query):
    cursor = connection.cursor()
    try:
@@ -29,6 +31,7 @@ def execute_query(connection, query):
        return None
 
 
+# Function to insert data into the database
 def insert_sightings_data(connection, df):
    cursor = connection.cursor()
    for index, row in df.iterrows():
@@ -51,21 +54,84 @@ def insert_sightings_data(connection, df):
    cursor.close()
 
 
+# Function to filter by certainty
+def filter_by_certainty(connection, certainty):
+   query = f"""
+   SELECT *
+   FROM Sightings
+   WHERE certainty = '{certainty}'
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+   else:
+       print("No results found.")
+
+
+# Function to filter by category
+def filter_by_category(connection, category):
+   query = f"""
+   SELECT *
+   FROM Sightings
+   WHERE category = '{category}'
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+   else:
+       print("No results found.")
+
+
+# Function to filter by group size
+def filter_by_group_size(connection, group_size):
+   query = f"""
+   SELECT *
+   FROM Sightings
+   WHERE group_size = {group_size}
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+   else:
+       print("No results found.")
+
+
+# Main function
 def main():
    df = pd.read_csv("C:/WHALE SIGHTINGS/WHALE SIGHTINGS DATASET.csv")
    connection = connect_to_database()
    if connection:
        insert_sightings_data(connection, df)
 
-       query_first_sighting = "SELECT * FROM Sightings LIMIT 1"
-       first_sighting = execute_query(connection, query_first_sighting)
-       if first_sighting:
-           print("First sighting:", first_sighting[0])
-       else:
-           print("Couldn't output first sighting.")
+       # Text-based user interface
+       while True:
+           print("\n=== Whale Sightings Menu ===")
+           print("1. Filter by Certainty")
+           print("2. Filter by Category")
+           print("3. Filter by Group Size")
+           print("4. Exit")
+           choice = input("Enter your choice: ")
+
+           if choice == "1":
+               certainty = input("Enter certainty: ")
+               filter_by_certainty(connection, certainty)
+           elif choice == "2":
+               category = input("Enter category: ")
+               filter_by_category(connection, category)
+           elif choice == "3":
+               group_size = int(input("Enter group size: "))
+               filter_by_group_size(connection, group_size)
+           elif choice == "4":
+               print("Exiting the program.")
+               break
+           else:
+               print("Invalid choice. Please try again.")
 
        connection.close()
-       print("Data insertion done.")
+       print("Data manipulation completed.")
    print("End Program")
 
 
