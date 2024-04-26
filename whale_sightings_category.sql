@@ -1,10 +1,10 @@
+DROP DATABASE IF EXISTS whale_sightings;
 CREATE DATABASE IF NOT EXISTS whale_sightings;
-
 USE whale_sightings;
 
-CREATE TABLE Sightings (
+CREATE TABLE IF NOT EXISTS Sightings (
     sighting_id INT AUTO_INCREMENT PRIMARY KEY,
-    sighting_date DATE,
+    sighting_date VARCHAR(20), 
     group_size INT,
     latitude DECIMAL(10, 6),
     longitude DECIMAL(10, 6),
@@ -14,23 +14,24 @@ CREATE TABLE Sightings (
     duplicate VARCHAR(10)
 );
 
-CREATE TABLE Location (
+CREATE TABLE IF NOT EXISTS Location (
     location_id INT AUTO_INCREMENT PRIMARY KEY,
     latitude DECIMAL(10, 6),
     longitude DECIMAL(10, 6)
 );
 
-CREATE TABLE Category (
+CREATE TABLE IF NOT EXISTS Category (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(50)
 );
 
-CREATE TABLE Certainty (
+CREATE TABLE IF NOT EXISTS Certainty (
     certainty_id INT AUTO_INCREMENT PRIMARY KEY,
     certainty_level VARCHAR(50)
 );
 
-CREATE TABLE GroupSize (
+CREATE TABLE IF NOT EXISTS GroupSize (
     group_size_id INT AUTO_INCREMENT PRIMARY KEY,
     group_size_value INT
 );
+
