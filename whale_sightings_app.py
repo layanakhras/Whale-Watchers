@@ -29,21 +29,6 @@ def execute_query(connection, query):
        return None
 
 
-def example_query(connection):
-   query = """
-   SELECT Sightings.sighting_id, Sightings.sighting_date, Category.category_name
-   FROM Sightings
-   JOIN Category ON Sightings.category = Category.category_name
-   LIMIT 10
-   """
-   result = execute_query(connection, query)
-   if result:
-       for row in result:
-           print(row)
-   else:
-       print("No results found")
-
-
 def insert_sightings_data(connection, df):
    cursor = connection.cursor()
    for index, row in df.iterrows():
@@ -71,13 +56,19 @@ def main():
    connection = connect_to_database()
    if connection:
        insert_sightings_data(connection, df)
-       example_query(connection)
+
+       query_first_sighting = "SELECT * FROM Sightings LIMIT 1"
+       first_sighting = execute_query(connection, query_first_sighting)
+       if first_sighting:
+           print("First sighting:", first_sighting[0])
+       else:
+           print("Couldn't output first sighting.")
+
        connection.close()
-       print("Data insertion and example query completed.")
+       print("Data insertion done.")
    print("End Program")
 
 
 if __name__ == "__main__":
    main()
-
 
