@@ -105,6 +105,7 @@ def filter_by_group_size(connection, group_size):
        print("No results found.")
 
 
+# Function to filter by year
 def filter_by_year(connection, year):
    query = f"""
    SELECT *
@@ -120,6 +121,7 @@ def filter_by_year(connection, year):
        print("No results found.")
 
 
+# Function to filter by mom and calf sightings
 def filter_by_mom_and_calf(connection):
    query = """
    SELECT *
@@ -135,6 +137,7 @@ def filter_by_mom_and_calf(connection):
        print("No mom and calf sightings found.")
 
 
+# Function to find the highest group size
 def highest_group_size(connection):
    query = """
    SELECT S.*
@@ -154,6 +157,7 @@ def highest_group_size(connection):
        print("No results found.")
 
 
+# Function to filter by date
 def filter_by_date(connection, day, month, year):
    query = f"""
    SELECT *
@@ -171,6 +175,7 @@ def filter_by_date(connection, day, month, year):
        print("No results found for the specified date.")
 
 
+# Function to plot sightings by month
 def plot_sightings_by_month(connection):
    query = """
    SELECT MONTH(STR_TO_DATE(sighting_date, '%d-%b-%y')) AS month, COUNT(*) AS num_sightings
@@ -195,6 +200,101 @@ def plot_sightings_by_month(connection):
        print("No results found.")
 
 
+# Function to plot sightings by year
+def plot_sightings_by_year(connection):
+   query = """
+   SELECT YEAR(STR_TO_DATE(sighting_date, '%d-%b-%y')) AS year, COUNT(*) AS num_sightings
+   FROM Sightings
+   GROUP BY year
+   """
+   result = execute_query(connection, query)
+   if result:
+       years = [row[0] for row in result]
+       sightings = [row[1] for row in result]
+
+       # Plotting
+       plt.figure(figsize=(10, 6))
+       plt.bar(years, sightings, color='lightgreen')
+       plt.xlabel('Year')
+       plt.ylabel('Number of Sightings')
+       plt.title('Sightings by Year')
+       plt.grid(axis='y', linestyle='--', alpha=0.7)
+       plt.show()
+   else:
+       print("No results found.")
+
+
+# Function to plot sightings by category
+def plot_sightings_by_category(connection):
+   query = """
+   SELECT category, COUNT(*) AS num_sightings
+   FROM Sightings
+   GROUP BY category
+   """
+   result = execute_query(connection, query)
+   if result:
+       categories = [row[0] for row in result]
+       sightings = [row[1] for row in result]
+
+       # Plotting
+       plt.figure(figsize=(10, 6))
+       plt.bar(categories, sightings, color='lightcoral')
+       plt.xlabel('Category')
+       plt.ylabel('Number of Sightings')
+       plt.title('Sightings by Category')
+       plt.xticks(rotation=45, ha='right')
+       plt.grid(axis='y', linestyle='--', alpha=0.7)
+       plt.tight_layout()
+       plt.show()
+   else:
+       print("No results found.")
+
+
+# Function to plot sightings by group size
+def plot_sightings_by_group_size(connection):
+   query = """
+   SELECT group_size, COUNT(*) AS num_sightings
+   FROM Sightings
+   GROUP BY group_size
+   """
+   result = execute_query(connection, query)
+   if result:
+       group_sizes = [str(row[0]) for row in result]  # Convert to strings
+       sightings = [row[1] for row in result]
+
+       # Plotting
+       plt.figure(figsize=(10, 6))
+       plt.bar(group_sizes, sightings, color='orange')
+       plt.xlabel('Group Size')
+       plt.ylabel('Number of Sightings')
+       plt.title('Sightings by Group Size')
+       plt.grid(axis='y', linestyle='--', alpha=0.7)
+       plt.show()
+   else:
+       print("No results found.")
+
+# Function to plot sightings by mom/calf
+def plot_sightings_by_mom_and_calf(connection):
+   query = """
+   SELECT mom_calf, COUNT(*) AS num_sightings
+   FROM Sightings
+   GROUP BY mom_calf
+   """
+   result = execute_query(connection, query)
+   if result:
+       categories = [row[0] for row in result]
+       sightings = [row[1] for row in result]
+
+       # Plotting
+       plt.figure(figsize=(6, 6))
+       plt.pie(sightings, labels=categories, autopct='%1.1f%%', startangle=140)
+       plt.title('Sightings by Mom/Calf')
+       plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+       plt.show()
+   else:
+       print("No results found.")
+
+
 # Main function
 def main():
    df = pd.read_csv("C:/WHALE SIGHTINGS/WHALE SIGHTINGS DATASET.csv")
@@ -212,7 +312,11 @@ def main():
            print("5. Filter by Mom and Calf")
            print("6. Filter by highest group size")
            print("7. Filter by date")
-           print("8. View sighting chart by month ")
+           print("8. View sighting chart by month")
+           print("9. View sighting chart by year")
+           print("10. View sighting chart by category")
+           print("11. View sighting chart by group size")
+           print("12. View sighting chart by mom/calf")
            print("0. Exit")
            print("========================")
            choice = input("Enter your choice: ")
@@ -248,8 +352,15 @@ def main():
                filter_by_date(connection, day, month, year)
            elif choice == "8":
                plot_sightings_by_month(connection)
+           elif choice == "9":
+               plot_sightings_by_year(connection)
+           elif choice == "10":
+               plot_sightings_by_category(connection)
+           elif choice == "11":
+               plot_sightings_by_group_size(connection)
+           elif choice == "12":
+               plot_sightings_by_mom_and_calf(connection)
            elif choice == "0":
-               print("Exiting the program.")
                break
            else:
                print("Invalid choice. Please try again.")
