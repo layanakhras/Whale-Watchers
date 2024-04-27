@@ -1,5 +1,6 @@
 import mysql.connector
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # Function to connect to the MySQL database
@@ -67,6 +68,7 @@ def filter_by_certainty(connection, certainty):
    if result:
        for row in result:
            print(row)
+       print(f"Number of results: {len(result)}")
    else:
        print("No results found.")
 
@@ -82,6 +84,7 @@ def filter_by_category(connection, category):
    if result:
        for row in result:
            print(row)
+       print(f"Number of results: {len(result)}")
    else:
        print("No results found.")
 
@@ -97,6 +100,7 @@ def filter_by_group_size(connection, group_size):
    if result:
        for row in result:
            print(row)
+       print(f"Number of results: {len(result)}")
    else:
        print("No results found.")
 
@@ -111,6 +115,82 @@ def filter_by_year(connection, year):
    if result:
        for row in result:
            print(row)
+       print(f"Number of results: {len(result)}")
+   else:
+       print("No results found.")
+
+
+def filter_by_mom_and_calf(connection):
+   query = """
+   SELECT *
+   FROM Sightings
+   WHERE mom_calf = 'Yes'
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+       print(f"Number of results: {len(result)}")
+   else:
+       print("No mom and calf sightings found.")
+
+
+def highest_group_size(connection):
+   query = """
+   SELECT S.*
+   FROM Sightings AS S
+   JOIN (
+       SELECT MAX(group_size) AS max_group_size
+       FROM Sightings
+   ) AS max_size
+   ON S.group_size = max_size.max_group_size
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+       print(f"Number of results: {len(result)}")
+   else:
+       print("No results found.")
+
+
+def filter_by_date(connection, day, month, year):
+   query = f"""
+   SELECT *
+   FROM Sightings
+   WHERE DAY(STR_TO_DATE(sighting_date, '%d-%b-%y')) = {day}
+   AND MONTH(STR_TO_DATE(sighting_date, '%d-%b-%y')) = {month}
+   AND YEAR(STR_TO_DATE(sighting_date, '%d-%b-%y')) = {year}
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+       print(f"Number of results: {len(result)}")
+   else:
+       print("No results found for the specified date.")
+
+
+def plot_sightings_by_month(connection):
+   query = """
+   SELECT MONTH(STR_TO_DATE(sighting_date, '%d-%b-%y')) AS month, COUNT(*) AS num_sightings
+   FROM Sightings
+   GROUP BY month
+   """
+   result = execute_query(connection, query)
+   if result:
+       months = [row[0] for row in result]
+       sightings = [row[1] for row in result]
+
+       # Plotting
+       plt.figure(figsize=(10, 6))
+       plt.bar(months, sightings, color='skyblue')
+       plt.xlabel('Month')
+       plt.ylabel('Number of Sightings')
+       plt.title('Sightings by Month')
+       plt.xticks(range(1, 13))
+       plt.grid(axis='y', linestyle='--', alpha=0.7)
+       plt.show()
    else:
        print("No results found.")
 
@@ -129,7 +209,12 @@ def main():
            print("2. Filter by Category")
            print("3. Filter by Group Size")
            print("4. Filter by Year")
-           print("5. Exit")
+           print("5. Filter by Mom and Calf")
+           print("6. Filter by highest group size")
+           print("7. Filter by date")
+           print("8. View sighting chart by month ")
+           print("0. Exit")
+           print("========================")
            choice = input("Enter your choice: ")
 
            if choice == "1":
@@ -151,13 +236,25 @@ def main():
                year = int(input("Enter year: "))
                filter_by_year(connection, year)
            elif choice == "5":
+               print("Mom and Calf Sightings: ")
+               filter_by_mom_and_calf(connection)
+           elif choice == "6":
+               print("Fetching sightings with the highest recorded group size...")
+               highest_group_size(connection)
+           elif choice == "7":
+               day = int(input("Enter day (1-31): "))
+               month = int(input("Enter month (1-12): "))
+               year = int(input("Enter year (2002-2018): "))
+               filter_by_date(connection, day, month, year)
+           elif choice == "8":
+               plot_sightings_by_month(connection)
+           elif choice == "0":
                print("Exiting the program.")
                break
            else:
                print("Invalid choice. Please try again.")
 
        connection.close()
-       print("Data manipulation completed.")
    print("End Program")
 
 
