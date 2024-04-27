@@ -191,9 +191,10 @@ def plot_sightings_by_month(connection):
 
 def plot_sightings_by_year(connection):
    query = """
-   SELECT YEAR(STR_TO_DATE(sighting_date, '%d-%b-%y')) AS year, COUNT(*) AS num_sightings
+   SELECT CAST(YEAR(STR_TO_DATE(sighting_date, '%d-%b-%y')) AS UNSIGNED) AS year, COUNT(*) AS num_sightings
    FROM Sightings
    GROUP BY year
+
    """
    result = execute_query(connection, query)
    if result:
@@ -326,6 +327,27 @@ def filter_by_certainty_and_category(connection):
        print("No results found.")
 
 
+def filter_by_certainty_and_mom_calf(connection):
+   query = """
+   SELECT S.*
+   FROM Sightings S
+   JOIN (
+       SELECT DISTINCT sighting_id
+       FROM Sightings
+       WHERE certainty = 'Definite'
+   ) AS D ON S.sighting_id = D.sighting_id
+   WHERE S.mom_calf = 'Yes'
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+       print(f"Number of results: {len(result)}")
+   else:
+       print("No results found.")
+
+
+
 def main():
    df = pd.read_csv("C:/WHALE SIGHTINGS/WHALE SIGHTINGS DATASET.csv")
    connection = connect_to_database()
@@ -341,13 +363,14 @@ def main():
            print("5. Find sightings with Mom-and-Calf pair")
            print("6. Filter by highest group size")
            print("7. Find sightings with unknown observer and probable certainty")
-           print("8. Find sightings by exact date")
-           print("9. Generate sighting chart by month")
-           print("10. Generate sighting chart by year")
-           print("11. Generate sighting chart by observer")
-           print("12. Generate sighting chart by group size")
-           print("13. Generate mom/calf sighting chart")
-           print("14. Generate sightings map")
+           print("8. Find sightings with mom and calf pair and definite certainty")
+           print("9. Find sightings by exact date")
+           print("10. Generate sighting chart by month")
+           print("11. Generate sighting chart by year")
+           print("12. Generate sighting chart by observer")
+           print("13. Generate sighting chart by group size")
+           print("14. Generate mom/calf sighting chart")
+           print("15. Generate sightings map")
            print("0. Exit")
            print("========================")
            choice = input("Enter your choice: ")
@@ -380,21 +403,24 @@ def main():
                print("Fetching sightings with unknown observer and probable certainty...")
                filter_by_certainty_and_category(connection)
            elif choice == "8":
+               print("Fetching definite sightings of mom and calf pair...")
+               filter_by_certainty_and_mom_calf(connection)
+           elif choice == "9":
                day = int(input("Enter day (1-31): "))
                month = int(input("Enter month (1-12): "))
                year = int(input("Enter year (2002-2018): "))
                filter_by_date(connection, day, month, year)
-           elif choice == "9":
-               plot_sightings_by_month(connection)
            elif choice == "10":
-               plot_sightings_by_year(connection)
+               plot_sightings_by_month(connection)
            elif choice == "11":
-               plot_sightings_by_category(connection)
+               plot_sightings_by_year(connection)
            elif choice == "12":
-               plot_sightings_by_group_size(connection)
+               plot_sightings_by_category(connection)
            elif choice == "13":
-               plot_sightings_by_mom_and_calf(connection)
+               plot_sightings_by_group_size(connection)
            elif choice == "14":
+               plot_sightings_by_mom_and_calf(connection)
+           elif choice == "15":
                plot_sightings_map(connection)
            elif choice == "0":
                break
