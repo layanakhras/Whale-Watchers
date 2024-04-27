@@ -1,9 +1,9 @@
 import mysql.connector
 import pandas as pd
 import matplotlib.pyplot as plt
+import folium
 
 
-# Function to connect to the MySQL database
 def connect_to_database():
    try:
        connection = mysql.connector.connect(
@@ -19,7 +19,6 @@ def connect_to_database():
        return None
 
 
-# Function to execute SQL queries
 def execute_query(connection, query):
    cursor = connection.cursor()
    try:
@@ -32,7 +31,6 @@ def execute_query(connection, query):
        return None
 
 
-# Function to insert data into the database
 def insert_sightings_data(connection, df):
    print("Loading data...")
    cursor = connection.cursor()
@@ -57,7 +55,6 @@ def insert_sightings_data(connection, df):
    print("Loading complete")
 
 
-# Function to filter by certainty
 def filter_by_certainty(connection, certainty):
    query = f"""
    SELECT *
@@ -73,7 +70,6 @@ def filter_by_certainty(connection, certainty):
        print("No results found.")
 
 
-# Function to filter by category
 def filter_by_category(connection, category):
    query = f"""
    SELECT *
@@ -89,7 +85,6 @@ def filter_by_category(connection, category):
        print("No results found.")
 
 
-# Function to filter by group size
 def filter_by_group_size(connection, group_size):
    query = f"""
    SELECT *
@@ -105,7 +100,6 @@ def filter_by_group_size(connection, group_size):
        print("No results found.")
 
 
-# Function to filter by year
 def filter_by_year(connection, year):
    query = f"""
    SELECT *
@@ -121,7 +115,6 @@ def filter_by_year(connection, year):
        print("No results found.")
 
 
-# Function to filter by mom and calf sightings
 def filter_by_mom_and_calf(connection):
    query = """
    SELECT *
@@ -137,7 +130,6 @@ def filter_by_mom_and_calf(connection):
        print("No mom and calf sightings found.")
 
 
-# Function to find the highest group size
 def highest_group_size(connection):
    query = """
    SELECT S.*
@@ -157,7 +149,6 @@ def highest_group_size(connection):
        print("No results found.")
 
 
-# Function to filter by date
 def filter_by_date(connection, day, month, year):
    query = f"""
    SELECT *
@@ -175,7 +166,6 @@ def filter_by_date(connection, day, month, year):
        print("No results found for the specified date.")
 
 
-# Function to plot sightings by month
 def plot_sightings_by_month(connection):
    query = """
    SELECT MONTH(STR_TO_DATE(sighting_date, '%d-%b-%y')) AS month, COUNT(*) AS num_sightings
@@ -187,7 +177,6 @@ def plot_sightings_by_month(connection):
        months = [row[0] for row in result]
        sightings = [row[1] for row in result]
 
-       # Plotting
        plt.figure(figsize=(10, 6))
        plt.bar(months, sightings, color='skyblue')
        plt.xlabel('Month')
@@ -200,7 +189,6 @@ def plot_sightings_by_month(connection):
        print("No results found.")
 
 
-# Function to plot sightings by year
 def plot_sightings_by_year(connection):
    query = """
    SELECT YEAR(STR_TO_DATE(sighting_date, '%d-%b-%y')) AS year, COUNT(*) AS num_sightings
@@ -224,7 +212,6 @@ def plot_sightings_by_year(connection):
        print("No results found.")
 
 
-# Function to plot sightings by category
 def plot_sightings_by_category(connection):
    query = """
    SELECT category, COUNT(*) AS num_sightings
@@ -236,7 +223,6 @@ def plot_sightings_by_category(connection):
        categories = [row[0] for row in result]
        sightings = [row[1] for row in result]
 
-       # Plotting
        plt.figure(figsize=(10, 6))
        plt.bar(categories, sightings, color='lightcoral')
        plt.xlabel('Category')
@@ -259,7 +245,7 @@ def plot_sightings_by_group_size(connection):
    """
    result = execute_query(connection, query)
    if result:
-       group_sizes = [str(row[0]) for row in result]  # Convert to strings
+       group_sizes = [str(row[0]) for row in result]
        sightings = [row[1] for row in result]
 
        # Plotting
@@ -273,7 +259,7 @@ def plot_sightings_by_group_size(connection):
    else:
        print("No results found.")
 
-# Function to plot sightings by mom/calf
+
 def plot_sightings_by_mom_and_calf(connection):
    query = """
    SELECT mom_calf, COUNT(*) AS num_sightings
@@ -289,34 +275,79 @@ def plot_sightings_by_mom_and_calf(connection):
        plt.figure(figsize=(6, 6))
        plt.pie(sightings, labels=categories, autopct='%1.1f%%', startangle=140)
        plt.title('Sightings by Mom/Calf')
-       plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+       plt.axis('equal')
        plt.show()
    else:
        print("No results found.")
 
 
-# Main function
+def plot_sightings_map(connection, max_markers=5000):
+   query = """
+   SELECT latitude, longitude
+   FROM Sightings
+   """
+   result = execute_query(connection, query)
+   if result:
+       map = folium.Map(location=[0, 0], zoom_start=2)
+       markers_added = 0
+       for row in result:
+           lat, lon = row
+           if lat is not None and lon is not None:
+               folium.Marker(location=[lat, lon]).add_to(map)
+               markers_added += 1
+               if markers_added >= max_markers:
+                   break
+       if markers_added > 0:
+           map.save("sightings_map.html")
+           print("Map generated successfully. Check 'sightings_map.html'")
+       else:
+           print("No valid location data found or exceeded maximum number of markers.")
+   else:
+       print("No results found.")
+
+
+def filter_by_certainty_and_category(connection):
+   query = """
+   SELECT *
+   FROM Sightings AS S
+   JOIN (
+       SELECT sighting_id
+       FROM Sightings
+       WHERE CATEGORY = 'Unknown' AND CERTAINTY = 'Probable'
+   ) AS U
+   ON S.sighting_id = U.sighting_id
+   """
+   result = execute_query(connection, query)
+   if result:
+       for row in result:
+           print(row)
+       print(f"Number of results: {len(result)}")
+   else:
+       print("No results found.")
+
+
 def main():
    df = pd.read_csv("C:/WHALE SIGHTINGS/WHALE SIGHTINGS DATASET.csv")
    connection = connect_to_database()
    if connection:
        insert_sightings_data(connection, df)
 
-       # Text-based user interface
        while True:
            print("\n=== Whale Watcher ===")
-           print("1. Filter by Certainty")
-           print("2. Filter by Category")
-           print("3. Filter by Group Size")
-           print("4. Filter by Year")
-           print("5. Filter by Mom and Calf")
+           print("1. Find sightings by certainty")
+           print("2. Find sightings by observer")
+           print("3. Find sightings by group size")
+           print("4. Find sightings by year")
+           print("5. Find sightings with Mom-and-Calf pair")
            print("6. Filter by highest group size")
-           print("7. Filter by date")
-           print("8. View sighting chart by month")
-           print("9. View sighting chart by year")
-           print("10. View sighting chart by category")
-           print("11. View sighting chart by group size")
-           print("12. View sighting chart by mom/calf")
+           print("7. Find sightings with unknown observer and probable certainty")
+           print("8. Find sightings by exact date")
+           print("9. Generate sighting chart by month")
+           print("10. Generate sighting chart by year")
+           print("11. Generate sighting chart by observer")
+           print("12. Generate sighting chart by group size")
+           print("13. Generate mom/calf sighting chart")
+           print("14. Generate sightings map")
            print("0. Exit")
            print("========================")
            choice = input("Enter your choice: ")
@@ -346,27 +377,32 @@ def main():
                print("Fetching sightings with the highest recorded group size...")
                highest_group_size(connection)
            elif choice == "7":
+               print("Fetching sightings with unknown observer and probable certainty...")
+               filter_by_certainty_and_category(connection)
+           elif choice == "8":
                day = int(input("Enter day (1-31): "))
                month = int(input("Enter month (1-12): "))
                year = int(input("Enter year (2002-2018): "))
                filter_by_date(connection, day, month, year)
-           elif choice == "8":
-               plot_sightings_by_month(connection)
            elif choice == "9":
-               plot_sightings_by_year(connection)
+               plot_sightings_by_month(connection)
            elif choice == "10":
-               plot_sightings_by_category(connection)
+               plot_sightings_by_year(connection)
            elif choice == "11":
-               plot_sightings_by_group_size(connection)
+               plot_sightings_by_category(connection)
            elif choice == "12":
+               plot_sightings_by_group_size(connection)
+           elif choice == "13":
                plot_sightings_by_mom_and_calf(connection)
+           elif choice == "14":
+               plot_sightings_map(connection)
            elif choice == "0":
                break
            else:
                print("Invalid choice. Please try again.")
 
        connection.close()
-   print("End Program")
+   print("Goodbye!")
 
 
 if __name__ == "__main__":
