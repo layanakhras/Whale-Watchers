@@ -1,3 +1,9 @@
+-- Layan Akhras
+-- 4/28/2024
+-- UMBC CMSC 461
+-- Project Whale Watcher
+
+
 DROP DATABASE IF EXISTS whale_sightings;
 CREATE DATABASE IF NOT EXISTS whale_sightings;
 USE whale_sightings;
