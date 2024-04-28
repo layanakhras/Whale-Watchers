@@ -1,3 +1,8 @@
+# Layan Akhras
+# 4/28/2024
+# UMBC CMSC 461
+# Project Whale Watcher
+
 import mysql.connector
 import pandas as pd
 import matplotlib.pyplot as plt
