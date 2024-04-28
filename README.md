@@ -5,7 +5,7 @@ Layan Akhras
 UMBC CMSC 461
 Project Whale Watcher
 
-Whale Watcher is a database-driven text-based application designed to explore whale sighting data, 
+Project Whale Watcher is a database-driven text-based application designed to explore whale sighting data, 
 allowing users to filter sightings based on various criteria such as certainty, category, 
 whale group size, sighting date, and more.
 
