@@ -1,6 +1,5 @@
 -- Layan Akhras
 -- 4/28/2024
--- UMBC CMSC 461
 -- Project Whale Watcher
 
 
